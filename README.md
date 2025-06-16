@@ -1,6 +1,6 @@
 # Docker_Loki
 
-A test bed for evluating Loki for LT Operations. Not a mature installation.
+A test bed for evaluating Loki for LT Operations. Not a mature installation.
 
 This Docker contains Loki (queryable log database) and Alloy (ingestion agent). Typically these would probably be run in a single docker compose with grafana since they are all interdependent, but for testing and evaluation I have left the Grafana running in its own environment (https://github.com/LivTel/Docker_SDBgrafana).
 
@@ -11,7 +11,7 @@ wget https://raw.githubusercontent.com/grafana/loki/v3.4.1/production/docker-com
 
 Uses the official docker images of Loki and Alloy from Grafana.
 
-Only things here are the compose file and a single server config for each of Loki and Alloy. The compose mounts the external NAS and writs all data into there. That means all Loki databases persist externally and you can stop and start theis docker whenever you like ithout loss of data.
+Only things here are the compose file and a single server config for each of Loki and Alloy. The compose mounts the external NAS and writes all data into there. That means all Loki databases persist externally and you can stop and start this docker whenever you like without loss of data.
 
 
 # Instructions
@@ -35,10 +35,10 @@ More information about how ltvmhost5 was configured to run docker on wiki Grafan
 
 External storage mount points are defined in compose.yml.
 
-The location where Alloy looks for the log files to ingest is defined in config.alloy. Currently that is the big external RAID NAS, which is not where vlm are stored. You need to mannually copy the vlm that you want ingested over from sdbserver.
+The location where Alloy looks for the log files to ingest is defined in config.alloy. Currently that is the big external RAID NAS, which is not where vlm are stored. You need to manually copy the vlm that you want ingested over from sdbserver.
 
 # Still to be done
-* Automatically scrape new vlm as they appearon sdbserver
+* Automatically scrape new vlm as they appear on sdbserver
 * Automate 'this year' in the timestamp. Does Alloy default to now if we do not specify a year?
 
 

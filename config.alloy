@@ -1,0 +1,119 @@
+
+logging {
+	level  = "debug"
+	format = "logfmt"
+}
+
+
+// Read specific files, without wild card globbing.
+//loki.source.file "vlm" {
+//  targets    = [
+//    {__path__ = "/var/log/syslog", "color" = "pink"},
+//    {__path__ = "/var/log/syslog.2", "color" = "blue"},
+//    {__path__ = "/var/log/syslog.3", "color" = "green"}
+//  ]
+//  forward_to = [loki.write.local.receiver]
+//}
+
+
+// Create a list of files using wild cards
+local.file_match "vlm" {
+  path_targets = [
+    {__path__ = "/loki/vlm/messages*"},
+    //{__path__ = "/loki/vlm/2024/messages*"},
+  ]
+  sync_period = "1m"
+}
+
+loki.source.file "vlm" {
+  targets    = local.file_match.vlm.targets
+  forward_to = [loki.process.vlm.receiver]		// Run the process first, before sending to Loki
+  //decompression {					// Uncomment decompression to read gzipped logs
+  //  enabled = true
+  //  initial_delay = "60s"
+  //  format = "gz"
+  //}
+}
+
+
+// Rules for parsing the log file before sending to the Loki writer
+loki.process "vlm" {
+  forward_to = [loki.write.local.receiver]		// Where to send data after runnign the process
+
+  // process is a sequential pipeline, run in the order the stages are defined.
+  // First couple of stages modify individual log messages. Mainly it is fixing individual idiosyncratic messages to make
+  // 	them match the common format of all the other messages.
+  // Next we run the regex that does the bulk of the parsing. This effectively tokenizes the log message.
+  // Next we tell Alloy how to treat each token. E.g., defining date format so it can interpret the timestamp.
+  // Finall the processed log line is passed to the forward_to receiver defined above.
+
+  // Replace any [1234] with [xxx]
+  // This is to get rid of sshd[1234] and bootp[1234], but keep Agn[pollsafe]
+  stage.replace {
+    expression = "\\[([0-9]+?)\\]:"
+    replace = "xxx"
+  }
+
+  // annexswitch logs are different format to everything else. Fix them. Basically I just have to add an extra column for processname
+  stage.replace {
+    expression = "annexswitch.lt.com ( )"
+    replace = "annexswitch: "
+  }
+
+  // This is the main parser that defines and tokenizes the format of our log lines
+  stage.regex {
+      // Note necessity to say \\S where we want \S in the REGEX
+      expression = "^(?s)(?P<vlmmonth>\\S+?) +(?P<vlmday>\\S+?) (?P<vlmtime>\\S+?) (?P<node>\\S+?) (?P<process>\\S+?) (?P<content>.*)$"
+      // Following ignores [] after process. Good for sshd[1234] but bad for Agn[pollsafe]
+      //^(?s)(?P<month>\S+?) +(?P<day>\S+?) (?P<time>\S+?) (?P<node>\S+?) (?P<process>[^ :\[]+)\S+? (?P<content>.*)$
+      // Following should ignore numbers in sshd[1234] but still include Agn[pollsafe] as a process label
+      //^(?s)(?P<month>\S+?) +(?P<day>\S+?) (?P<time>\S+?) (?P<node>\S+?) (?P<process>((?!\[[0-9]+\])\S)+)\S+? (?P<content>.*)$
+  }
+
+  // Make the tokens we extracted in the regex into labels that will be used by Loki to index the file.
+  // This makes node and process into labels. You could rename them here if you wanted labels other than 'node' and 'process'.
+  stage.labels {
+    values = {
+      node = "",
+      process = "",
+    }
+  }
+
+  // Date format
+  // First use template to make a new token called datetime by glueing together date and time tokens from the log line.
+  // You could also modify the stage.regex to get the entire timestamp in one shot.
+  // Hard coded 2025 because year is not in var-log-messages.
+  // We need to do this to ingest old log files. Not tested, but I wonder if Alloy will default to 'this year' if the year is not specified.
+  // If that is the case then we can drop the "2025" out of here and assume that all new logs ingested are current. TBD.
+  // Then define the date format so Alloy can read it.
+  stage.template {
+    source = "datetime"
+    template = "2025 {{.vlmmonth}} {{.vlmday}} {{.vlmtime}} UTC"
+  }
+  stage.timestamp {
+    source = "datetime"
+    format = "2006 Jan 2 15:04:05 MST"
+  }
+
+  // We do not want to ignore old logs. We want everything. But this is how you would do it.
+  // See also reject_old_samples in the loki config yaml
+  //stage.drop {
+  //  older_than = '1y"
+  //  drop_counter_reason = "too old"
+  //}
+
+}
+
+loki.write "local" {
+  endpoint {
+    //url = "http://150.204.240.157:3100/api/v1/push"			// explicit IP number
+    url = "http://loki:3100/loki/api/v1/push"				// using the loki interprocess network defined in Docker compose
+  }
+}
+
+// Should be able to see this on http://127.0.0.0:12345. Not got it to work myself.
+livedebugging {
+  enabled = true
+}
+
+

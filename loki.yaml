@@ -34,11 +34,10 @@ schema_config:
 ruler:
   alertmanager_url: http://localhost:9093
 
-# Not yet clear to me if the pattern_ingester is useful. It seems it my only allow you to include or exclude
-# log lines on the basis of a pattern. E.g., we could say do not ingest any "New movement state entered" messages.
-# But we want to ingest everything, so not useful? Set to disabled?
+# Not yet clear to me if the pattern_ingester is useful.
 pattern_ingester:
   enabled: true
+
 
 limits_config:
   allow_structured_metadata: true
@@ -63,7 +62,8 @@ analytics:
   reporting_enabled: false
 
 
-# API
+# API examples
+# For the telescope.ljmu.ac.uk examples to work you will need to turn on the reverse proxy in the apache site configs
 # https://telescope.ljmu.ac.uk/loki/services
 # https://telescope.ljmu.ac.uk/loki/ready
 # https://150.204.240.157:3100/services

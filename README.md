@@ -48,7 +48,7 @@ The location where Alloy looks for the log files to ingest is defined in config.
 Not yet automated for daily ingestion. To ingest a vlm, just unzip it into /mnt/newarchive1/Dockershare/Docker_Loki/vlm
 
 #### Possible Missing Data:
-I ingested 1.05e6 lines of var-log-messages log files and there only seem to be 950 thousand in the Loki database, so some lines seem to be getting lost. That is going to need investigation to find out which log lines are not getting ingested.
+I ingested 2.6e6 lines of var-log-messages log files and there only seem to be 2.6e6 in the Loki database, so some lines seem to be getting lost. That is going to need investigation to find out which log lines are not getting ingested.
 
 #### Repeats:
 My current parser does not see these properly. It thinks the software process name is “last” and does not obviously flag to the user that this message has appeared hundreds of times. All you will see in Loki is that first instance which gets parsed properly. This is rather unfortunate. I do not yet have an elegant fix for this.

@@ -31,6 +31,9 @@ schema_config:
         prefix: index_
         period: 24h
 
+block_builder:
+  max_chunk_age: 4h
+
 ruler:
   alertmanager_url: http://localhost:9093
 
@@ -44,6 +47,7 @@ limits_config:
   volume_enabled: true
   reject_old_samples: false
   reject_old_samples_max_age: 10y
+  unordered_writes: true
 
 
 

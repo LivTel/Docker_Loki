@@ -22,7 +22,6 @@ Only things here are the compose file and a single server config for each of Lok
 
 ``docker compose up -d``
 
-
 Alloy will immediately start ingesting anything it can find in the directory specified in config.alloy.
 
 This was developed on ltvmhost5. If you start it on some other host, there may be further config required.
@@ -35,7 +34,10 @@ More information about how ltvmhost5 was configured to run docker on wiki Grafan
 
 External storage mount points are defined in compose.yml.
 
+# Ingesting more data
 The location where Alloy looks for the log files to ingest is defined in config.alloy. Currently that is the big external RAID NAS, which is not where vlm are stored. You need to manually copy the vlm that you want ingested over from sdbserver.
+
+Tests suggest it is better to drip feed the vlm into that ingestion directory one-per-minute in time sequential order. Loki/Alloy can ingest many files in parallel in a batch, but at some point it chokes and starts dropping some messages. When I ingest a year's worth (365) vlms at once, the Loki logs are full of errors. When I ingest one at a time, there are few or none.
 
 # Still to be done
 * Automatically scrape new vlm as they appear on sdbserver
@@ -48,7 +50,7 @@ The location where Alloy looks for the log files to ingest is defined in config.
 Not yet automated for daily ingestion. To ingest a vlm, just unzip it into /mnt/newarchive1/Dockershare/Docker_Loki/vlm
 
 #### Possible Missing Data:
-I ingested 2.6e6 lines of var-log-messages log files and there only seem to be 2.6e6 in the Loki database, so some lines seem to be getting lost. That is going to need investigation to find out which log lines are not getting ingested.
+I ingested 2.6e6 lines of var-log-messages log files and there only seem to be 2.6e6 in the Loki database, so some lines seem to be getting lost. That is going to need investigation to find out which log lines are not getting ingested. This seems to be the ingerster choking when I give it a whole year's worth to ingest at once. I think a random subset of messages have been lost. Probably need to re-ingest everything in an ordered manner. See "Ingesting more data" above.
 
 #### Repeats:
 My current parser does not see these properly. It thinks the software process name is “last” and does not obviously flag to the user that this message has appeared hundreds of times. All you will see in Loki is that first instance which gets parsed properly. This is rather unfortunate. I do not yet have an elegant fix for this.

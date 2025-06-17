@@ -44,13 +44,13 @@ The location where Alloy looks for the log files to ingest is defined in config.
 
 # Notes on things that do and do not work
 
-###### Ingestion:
+##### Ingestion:
 Not yet automated for daily ingestion. To ingest a vlm, just unzip it into /mnt/newarchive1/Dockershare/Docker_Loki/vlm
 
-###### Possible Missing Data:
+##### Possible Missing Data:
 I ingested 1.05e6 lines of var-log-messages log files and there only seem to be 950 thousand in the Loki database, so some lines seem to be getting lost. That is going to need investigation to find out which log lines are not getting ingested.
 
-###### Repeats:
+##### Repeats:
 My current parser does not see these properly. It thinks the software process name is “last” and does not obviously flag to the user that this message has appeared hundreds of times. All you will see in Loki is that first instance which gets parsed properly. This is rather unfortunate. I do not yet have an elegant fix for this.
 <code>
 May  8 20:14:34 mcc.lt.com Ept: <1e0020> More than 1 bit is set, state of OID 0x59 cannot be determined.
@@ -59,7 +59,7 @@ May  8 20:17:06 mcc.lt.com last message repeated 121 times
 May  8 20:22:52 mcc.lt.com last message repeated 346 times            
 </code>
 
-###### Process PIDs:
+##### Process PIDs:
 A small number of processes log both their name and their process ID (PID) in the log. That is a problem because Loki sees every instance of the process as a different label. Instead of seeing all sshd process as being sshd, it sees thousands of different sshd process. Every time anyone logs into the computer, it creates a new label. I think it is more use lump all the sshd messages together under a single “sshd” label. I have ‘fixed’ this by ignoring the PID number. I.e., all sshd messages are being stored in Loki as “sshd[xxx]” and the PID number has been completely lost. I think that is probably going to be OK. I doubt those PID numbers will ever be useful to us in the current context, but be aware I have discarded that particular datum. This effects sshd, bootp, telnetd, ftpd, inetd, ntpd messages.
 <code>
 Jun 13 14:02:02 node<<1>> sshd[10722]: log: Connection from 192.168.1.30 port 57168
@@ -81,5 +81,5 @@ Jun 13 14:02:02 node<<1>> sshd[xxx]: log: RSA authentication for maintain accept
 Jun 13 14:02:02 node<<1>> sshd[xxx]: log: executing remote command as user maintain
 </code>
 
-###### New Year:
+##### New Year:
 Overnight on the night of 31st Dec / New Year, the logs are not correctly ingested. If you look at the log format, there is no year! I know how to fix this, but it is only that one night. I will fix it at some point, but for now just do not use 31st Dec.

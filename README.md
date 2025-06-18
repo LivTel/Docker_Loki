@@ -39,6 +39,8 @@ The location where Alloy looks for the log files to ingest is defined in config.
 
 Tests suggest it is better to drip feed the vlm into that ingestion directory one-per-minute in time sequential order. Loki/Alloy can ingest many files in parallel in a batch, but at some point it chokes and starts dropping some messages. When I ingest a year's worth (365) vlms at once, the Loki logs are full of errors. When I ingest one at a time, there are few or none.
 
+Ingesting 2022 as a single file with individual vlm cat-ed together did not work either. Mostly worked reeally well, a months long gap in the middle of thee year? Odd. Needs trying again with a different year?
+
 # Deleting
 There are docs for how to do it, but I have not yet got it to work. https://grafana.com/docs/loki/latest/reference/loki-http-api/#request-log-deletion
 On the other hand, re-ingesting takes about 1min per vlm, so it only takes a few hours to delete the entire /mnt/newarchive1/Dockershare/Docker_Loki and re-ingest them all.

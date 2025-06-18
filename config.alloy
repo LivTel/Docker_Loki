@@ -1,6 +1,10 @@
-
+// debug is genuinely useful in trying to understand parsing, but can be problematically verbose.
+// For example, every single line produces a message when it does not match the stage.replace processes.
+// That means messages for virtually every single line ingested, since nearly no lines ever match those replace commands.
+// Only use for genuine debug. it is too much for 'watching for errors'
 logging {
-	level  = "debug"
+	//level  = "debug"
+	level  = "info"
 	format = "logfmt"
 }
 
@@ -17,12 +21,16 @@ logging {
 
 
 // Create a list of files using wild cards
+//
+// SUPER IMPORTANT ---- Remember to set the year in stage.template as well.
+//
 local.file_match "vlm" {
   path_targets = [
-    {__path__ = "/loki/vlm/messages*"},
-    //{__path__ = "/loki/vlm/2024/messages*"},
+    {__path__ = "/loki/vlm/messages.??????"},
+    //{__path__ = "/loki/vlm/2023/messages.??????"},
+    //{__path__ = "/loki/vlm/2022/messages.2022"},
   ]
-  sync_period = "1m"
+  sync_period = "10s"
 }
 
 loki.source.file "vlm" {
@@ -55,6 +63,7 @@ loki.process "vlm" {
   }
 
   // annexswitch logs are different format to everything else. Fix them. Basically I just have to add an extra column for processname
+  // At log==debug, this thows a message for every single line that does not match, which is virtually all of them!
   stage.replace {
     expression = "annexswitch.lt.com ( )"
     replace = "annexswitch: "

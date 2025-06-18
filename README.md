@@ -5,9 +5,7 @@ A test bed for evaluating Loki for LT Operations. Not a mature installation.
 This Docker contains Loki (queryable log database) and Alloy (ingestion agent). Typically these would probably be run in a single docker compose with grafana since they are all interdependent, but for testing and evaluation I have left the Grafana running in its own environment (https://github.com/LivTel/Docker_SDBgrafana).
 
 Grafana docs include examples of merging the entire stack into single compose. See https://grafana.com/docs/loki/latest/setup/install/docker/.
-```
-wget https://raw.githubusercontent.com/grafana/loki/v3.4.1/production/docker-compose.yaml -O docker-compose.yaml
-```
+(wget https://raw.githubusercontent.com/grafana/loki/v3.4.1/production/docker-compose.yaml -O docker-compose.yaml) But we are not using that.
 
 Uses the official docker images of Loki and Alloy from Grafana.
 
